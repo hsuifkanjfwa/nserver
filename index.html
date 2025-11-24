@@ -1,419 +1,228 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>CEX 永续合约资金费率监控</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工具导航</title>
 
-    <!-- 在线 JS：dayjs 用来格式化时间 -->
-    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+<!-- 图标 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css">
 
-    <style>
-        * { box-sizing: border-box; }
+<style>
+    :root {
+        --bg: #0f172a;
+        --bg-card: #1e293b;
+        --border: #334155;
+        --text: #e2e8f0;
+        --text-light: #94a3b8;
+        --accent: #38bdf8;
+    }
 
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
-            Arial, "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
-            background-color: #020617;
-            color: #e5e7eb;
-        }
+    body {
+        margin: 0;
+        font-family: "Inter", "PingFang SC", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+    }
 
-        header {
-            padding: 16px 24px;
-            border-bottom: 1px solid #111827;
-            background: linear-gradient(135deg, #020617, #020617 40%, #111827);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
+    header {
+        padding: 28px 20px 10px;
+        text-align: center;
+    }
 
-        header h1 {
-            margin: 0;
-            font-size: 20px;
-        }
+    header h1 {
+        font-size: 26px;
+        margin: 0;
+        letter-spacing: 1px;
+    }
 
-        header p {
-            margin: 4px 0 0;
-            font-size: 12px;
-            color: #9ca3af;
-        }
+    header p {
+        margin: 8px 0 18px;
+        color: var(--text-light);
+        font-size: 14px;
+    }
 
-        .container {
-            max-width: 1200px;
-            margin: 16px auto 32px;
-            padding: 0 16px;
-        }
+    .container {
+        max-width: 1000px;
+        margin: auto;
+        padding: 0 20px 50px;
+    }
 
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
+    .search-box {
+        width: 100%;
+        margin: 0 auto 30px;
+        display: flex;
+        justify-content: center;
+    }
 
-        .left-controls, .right-controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-        }
+    .search-box input {
+        width: 100%;
+        max-width: 480px;
+        padding: 12px 16px;
+        border-radius: 999px;
+        outline: none;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        color: var(--text);
+        font-size: 14px;
+    }
 
-        button {
-            border: 1px solid #4b5563;
-            background-color: #111827;
-            color: #e5e7eb;
-            border-radius: 999px;
-            padding: 6px 12px;
-            font-size: 12px;
-            cursor: pointer;
-        }
+    .category {
+        margin-top: 28px;
+    }
 
-        button:hover {
-            background-color: #1f2937;
-        }
+    .category-title {
+        font-size: 18px;
+        margin-bottom: 12px;
+        border-left: 4px solid var(--accent);
+        padding-left: 10px;
+        color: var(--accent);
+    }
 
-        button:disabled {
-            opacity: 0.6;
-            cursor: default;
-        }
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 14px;
+    }
 
-        select {
-            background-color: #020617;
-            color: #e5e7eb;
-            border-radius: 999px;
-            border: 1px solid #4b5563;
-            padding: 6px 10px;
-            font-size: 12px;
-        }
+    .tool-card {
+        padding: 16px;
+        background: var(--bg-card);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        text-decoration: none;
+        color: var(--text);
+        transition: 0.25s;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
 
-        .time-text {
-            font-size: 11px;
-            color: #9ca3af;
-        }
+    .tool-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--accent);
+        box-shadow: 0 4px 18px rgba(56, 189, 248, 0.15);
+    }
 
-        .table-wrapper {
-            background-color: #020617;
-            border-radius: 12px;
-            border: 1px solid #1f2937;
-            padding: 10px 12px 14px;
-            overflow-x: auto;
-        }
+    .tool-card i {
+        font-size: 24px;
+        color: var(--accent);
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-            min-width: 640px;
-        }
+    .tool-name {
+        font-size: 15px;
+        font-weight: 600;
+    }
 
-        thead {
-            background-color: #020617;
-        }
+    .tool-desc {
+        font-size: 12px;
+        color: var(--text-light);
+        line-height: 1.4;
+    }
 
-        th, td {
-            padding: 8px 6px;
-            text-align: right;
-            border-bottom: 1px solid #111827;
-        }
-
-        th:first-child,
-        td:first-child {
-            text-align: left;
-        }
-
-        th {
-            font-weight: 500;
-            color: #9ca3af;
-            font-size: 11px;
-        }
-
-        tr:hover td {
-            background-color: rgba(15, 23, 42, 0.9);
-        }
-
-        .cex-name {
-            font-weight: 600;
-            font-size: 12px;
-        }
-
-        .pair {
-            font-weight: 500;
-            font-size: 12px;
-        }
-
-        .positive { color: #4ade80; }
-        .negative { color: #fca5a5; }
-        .neutral  { color: #e5e7eb; }
-
-        .cex-tag {
-            display: inline-block;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 999px;
-            background-color: #111827;
-            color: #9ca3af;
-            margin-left: 6px;
-        }
-
-        .error {
-            color: #fca5a5;
-            font-size: 11px;
-            margin-top: 4px;
-        }
-
-        .footer {
-            margin-top: 24px;
-            font-size: 11px;
-            color: #6b7280;
-            text-align: center;
-        }
-
-        .footer a {
-            color: #9ca3af;
-            text-decoration: none;
-        }
-
-        .footer a:hover {
-            text-decoration: underline;
-        }
-    </style>
+</style>
 </head>
 <body>
 
 <header>
-    <h1>CEX 永续合约资金费率监控</h1>
-    <p>实时拉取部分主流交易所 Funding Rate（仅作演示，请自行核对数据）</p>
+    <h1>工具导航</h1>
+    <p>常用在线工具合集 · 一页全掌握</p>
 </header>
 
 <div class="container">
 
-    <section class="controls">
-        <div class="left-controls">
-            <label for="symbolSelect" style="font-size:12px;">交易对：</label>
-            <select id="symbolSelect">
-                <option value="BTCUSDT">BTCUSDT</option>
-                <option value="ETHUSDT">ETHUSDT</option>
-                <option value="BNBUSDT">BNBUSDT</option>
-            </select>
-
-            <label for="intervalSelect" style="font-size:12px;">资金费率周期：</label>
-            <select id="intervalSelect">
-                <option value="8h">8 小时</option>
-                <option value="1h">1 小时</option>
-            </select>
-        </div>
-
-        <div class="right-controls">
-            <button id="refreshBtn">立即刷新</button>
-            <span class="time-text" id="updateTimeText">上次更新：—</span>
-        </div>
-    </section>
-
-    <section class="table-wrapper">
-        <table>
-            <thead>
-            <tr>
-                <th>交易所</th>
-                <th>品种</th>
-                <th>当前资金费率</th>
-                <th>下一次结算时间</th>
-                <th>原始数据</th>
-            </tr>
-            </thead>
-            <tbody id="fundingTableBody">
-            <!-- JS 动态填充 -->
-            </tbody>
-        </table>
-        <div id="errorBox" class="error"></div>
-    </section>
-
-    <div class="footer">
-        数据来源：公开 REST API（Binance / OKX / Bybit 等），仅供参考，不构成投资建议。<br>
-        如需自定义更多交易所与交易对，请直接编辑本页面 JS 配置。
+    <!-- 搜索框 -->
+    <div class="search-box">
+        <input id="searchInput" type="text" placeholder="搜索工具… 支持名称、描述" />
     </div>
+
+    <!-- 分类：效率工具 -->
+    <section class="category">
+        <div class="category-title">效率工具 Productivity</div>
+        <div class="grid">
+            <a class="tool-card" href="https://www.remove.bg" target="_blank">
+                <i class="ri-scissors-2-line"></i>
+                <div class="tool-name">RemoveBG</div>
+                <div class="tool-desc">一键抠图、自动去背景</div>
+            </a>
+
+            <a class="tool-card" href="https://tinypng.com" target="_blank">
+                <i class="ri-image-line"></i>
+                <div class="tool-name">TinyPNG</div>
+                <div class="tool-desc">图片压缩神器，保持高清</div>
+            </a>
+
+            <a class="tool-card" href="https://pdfcrowd.com" target="_blank">
+                <i class="ri-file-pdf-line"></i>
+                <div class="tool-name">PDF 工具</div>
+                <div class="tool-desc">PDF 转换、压缩、编辑</div>
+            </a>
+        </div>
+    </section>
+
+    <!-- 分类：开发工具 -->
+    <section class="category">
+        <div class="category-title">开发工具 Dev Tools</div>
+        <div class="grid">
+            <a class="tool-card" href="https://regex101.com" target="_blank">
+                <i class="ri-code-s-slash-line"></i>
+                <div class="tool-name">Regex101</div>
+                <div class="tool-desc">在线正则表达式调试</div>
+            </a>
+
+            <a class="tool-card" href="https://jsonformatter.org" target="_blank">
+                <i class="ri-braces-line"></i>
+                <div class="tool-name">JSON 格式化</div>
+                <div class="tool-desc">JSON 美化 & 压缩</div>
+            </a>
+
+            <a class="tool-card" href="https://jwt.io" target="_blank">
+                <i class="ri-shield-keyhole-line"></i>
+                <div class="tool-name">JWT Debug</div>
+                <div class="tool-desc">JWT Token 解码与验证</div>
+            </a>
+        </div>
+    </section>
+
+    <!-- 分类：设计工具 -->
+    <section class="category">
+        <div class="category-title">设计工具 Design</div>
+        <div class="grid">
+            <a class="tool-card" href="https://coolors.co" target="_blank">
+                <i class="ri-pantone-line"></i>
+                <div class="tool-name">Coolors</div>
+                <div class="tool-desc">配色方案生成器</div>
+            </a>
+
+            <a class="tool-card" href="https://source.unsplash.com" target="_blank">
+                <i class="ri-camera-line"></i>
+                <div class="tool-name">Unsplash</div>
+                <div class="tool-desc">免费高质量图片素材</div>
+            </a>
+
+            <a class="tool-card" href="https://thenounproject.com" target="_blank">
+                <i class="ri-shapes-line"></i>
+                <div class="tool-name">Noun Project</div>
+                <div class="tool-desc">超大全矢量图标库</div>
+            </a>
+        </div>
+    </section>
+
 </div>
 
 <script>
-    // ===== 配置要展示的交易所 =====
-    // 可自行增删
-    const EXCHANGES = [
-        { id: 'binance', name: 'Binance', tag: 'USDT 合约' },
-        { id: 'okx',     name: 'OKX',     tag: 'USDT 永续' },
-        { id: 'bybit',   name: 'Bybit',   tag: 'USDT 永续' }
-    ];
+    // 简单搜索功能
+    const searchInput = document.getElementById("searchInput");
 
-    const symbolSelect   = document.getElementById('symbolSelect');
-    const intervalSelect = document.getElementById('intervalSelect');
-    const refreshBtn     = document.getElementById('refreshBtn');
-    const tableBody      = document.getElementById('fundingTableBody');
-    const updateTimeText = document.getElementById('updateTimeText');
-    const errorBox       = document.getElementById('errorBox');
+    searchInput.addEventListener("input", function () {
+        const keyword = this.value.toLowerCase();
+        const cards = document.querySelectorAll(".tool-card");
 
-    function setLoadingState(loading) {
-        refreshBtn.disabled = loading;
-        refreshBtn.textContent = loading ? '刷新中…' : '立即刷新';
-    }
-
-    function formatRate(rate) {
-        if (rate === null || rate === undefined || isNaN(rate)) return '—';
-        return (rate * 100).toFixed(4) + '%';
-    }
-
-    function formatTimestamp(ts) {
-        if (!ts) return '—';
-        try {
-            // ts 可能是 ms 或 s 级时间戳
-            if (ts < 1e12) ts *= 1000;
-            return dayjs(ts).format('YYYY-MM-DD HH:mm:ss');
-        } catch (e) {
-            return '—';
-        }
-    }
-
-    function getDirectionClass(rate) {
-        if (rate > 0) return 'positive';
-        if (rate < 0) return 'negative';
-        return 'neutral';
-    }
-
-    // ===== 各交易所 Funding Rate 获取函数（均返回统一结构） =====
-
-    // Binance: https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT
-    async function fetchBinanceFunding(symbol) {
-        const url = 'https://fapi.binance.com/fapi/v1/premiumIndex?symbol=' + encodeURIComponent(symbol);
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Binance 请求失败');
-        const data = await res.json();
-
-        // data.lastFundingRate, data.nextFundingTime
-        const rate = parseFloat(data.lastFundingRate);
-        return {
-            exchange: 'Binance',
-            pair: data.symbol,
-            rate: rate,
-            nextFundingTime: data.nextFundingTime,
-            raw: data
-        };
-    }
-
-    // OKX: https://www.okx.com/api/v5/public/funding-rate?instId=BTC-USDT-SWAP
-    function okxSymbol(symbol) {
-        // 简单映射：BTCUSDT -> BTC-USDT-SWAP
-        const base = symbol.replace('USDT', '');
-        return base + '-USDT-SWAP';
-    }
-
-    async function fetchOkxFunding(symbol) {
-        const instId = okxSymbol(symbol);
-        const url = 'https://www.okx.com/api/v5/public/funding-rate?instId=' + encodeURIComponent(instId);
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('OKX 请求失败');
-        const json = await res.json();
-        const data = (json.data && json.data[0]) || {};
-        const rate = parseFloat(data.fundingRate);
-
-        return {
-            exchange: 'OKX',
-            pair: data.instId || instId,
-            rate: rate,
-            nextFundingTime: parseInt(data.nextFundingTime || 0, 10),
-            raw: data
-        };
-    }
-
-    // Bybit: https://api.bybit.com/v5/market/funding/history?category=linear&symbol=BTCUSDT
-    async function fetchBybitFunding(symbol) {
-        const url = 'https://api.bybit.com/v5/market/funding/history?category=linear&limit=1&symbol='
-            + encodeURIComponent(symbol);
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Bybit 请求失败');
-        const json = await res.json();
-        const item = (json.result && json.result.list && json.result.list[0]) || {};
-        const rate = parseFloat(item.fundingRate);
-
-        return {
-            exchange: 'Bybit',
-            pair: item.symbol || symbol,
-            rate: rate,
-            nextFundingTime: parseInt(item.nextFundingTime || item.fundingRateTimestamp || 0, 10),
-            raw: item
-        };
-    }
-
-    async function fetchAllFunding() {
-        setLoadingState(true);
-        errorBox.textContent = '';
-        tableBody.innerHTML = '';
-
-        const symbol  = symbolSelect.value;
-        const interval = intervalSelect.value; // 这里暂时只展示，不参与计算
-
-        const promises = [
-            fetchBinanceFunding(symbol).catch(err => ({ error: err })),
-            fetchOkxFunding(symbol).catch(err => ({ error: err })),
-            fetchBybitFunding(symbol).catch(err => ({ error: err }))
-        ];
-
-        const results = await Promise.all(promises);
-
-        let hasError = false;
-
-        results.forEach((res, idx) => {
-            const ex = EXCHANGES[idx];
-            const tr = document.createElement('tr');
-
-            if (res.error) {
-                hasError = true;
-                tr.innerHTML = `
-                    <td>
-                        <span class="cex-name">${ex.name}</span>
-                        <span class="cex-tag">${ex.tag}</span>
-                    </td>
-                    <td class="pair">${symbol}</td>
-                    <td colspan="3" class="negative" style="text-align:left;">
-                        请求失败：${res.error.message || res.error}
-                    </td>
-                `;
-                tableBody.appendChild(tr);
-                return;
-            }
-
-            const rateClass = getDirectionClass(res.rate);
-            const rateText  = formatRate(res.rate);
-
-            tr.innerHTML = `
-                <td>
-                    <span class="cex-name">${ex.name}</span>
-                    <span class="cex-tag">${ex.tag}</span>
-                </td>
-                <td class="pair">${res.pair || symbol}</td>
-                <td class="${rateClass}">${rateText}</td>
-                <td>${formatTimestamp(res.nextFundingTime)}</td>
-                <td style="font-size:11px; max-width:260px; text-align:left;">
-                    ${JSON.stringify(res.raw)}
-                </td>
-            `;
-            tableBody.appendChild(tr);
+        cards.forEach(card => {
+            const text = card.innerText.toLowerCase();
+            card.style.display = text.includes(keyword) ? "" : "none";
         });
-
-        if (hasError) {
-            errorBox.textContent = '部分交易所请求失败，可能是网络问题、CORS 限制或 API 变更。请打开 F12 控制台查看详细错误信息。';
-        }
-
-        updateTimeText.textContent = '上次更新：' + dayjs().format('YYYY-MM-DD HH:mm:ss');
-        setLoadingState(false);
-    }
-
-    // 事件绑定
-    refreshBtn.addEventListener('click', fetchAllFunding);
-    symbolSelect.addEventListener('change', fetchAllFunding);
-    intervalSelect.addEventListener('change', fetchAllFunding);
-
-    // 页面加载后自动拉一次
-    fetchAllFunding();
+    });
 </script>
 
 </body>
